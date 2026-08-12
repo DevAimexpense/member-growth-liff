@@ -33,7 +33,12 @@
     // ==================
     function fail(m){ document.getElementById('spin').style.display='none'; document.getElementById('msg').textContent='เปิดไม่สำเร็จ'; document.getElementById('err').textContent=String(m); }
     var params = new URLSearchParams(location.search);
-    var page = params.get('page') || 'home';
+    var page = params.get('page');
+    if(!page){ // LIFF บางกรณีห่อ query ไว้ใน liff.state
+      var st = params.get('liff.state');
+      if(st){ try{ page = new URLSearchParams(st.charAt(0)==='?'?st.slice(1):st).get('page'); }catch(e){} }
+    }
+    page = page || 'home';
     (async function(){
       try{
         await liff.init({ liffId: LIFF_ID });
