@@ -149,9 +149,13 @@
       return bubble;
     }
 
+    var LIFF_OK=false;
+    function inClient(){ return !!(window.liff && liff.isInClient && liff.isInClient()); }
     async function sendCard(m){
-      if(!(window.liff && liff.isApiAvailable && liff.isApiAvailable('shareTargetPicker'))){
-        toast('อุปกรณ์นี้แชร์การ์ดไม่ได้ ลองเปิดในแอป LINE'); return;
+      if(!LIFF_OK){ toast('เปิดหน้านี้ผ่านลิงก์ในแอป LINE เพื่อส่งการ์ด'); return; }
+      if(!inClient()){ toast('ต้องเปิดในแอป LINE (ไม่ใช่เบราว์เซอร์ปกติ) จึงจะส่งการ์ดได้'); return; }
+      if(!(liff.isApiAvailable && liff.isApiAvailable('shareTargetPicker'))){
+        toast('ยังเปิดใช้ "Share target picker" ไม่ได้ — แจ้งแอดมินเปิดในตั้งค่า LIFF (คอนโซล LINE)'); return;
       }
       try{
         var res=await liff.shareTargetPicker(
@@ -168,11 +172,13 @@
     (async function(){
       try{
         await liff.init({ liffId: LIFF_ID });
+        LIFF_OK=true;
+        if(!liff.isLoggedIn() && !inClient()){ loadDir(); return; } // เบราว์เซอร์นอก LINE = ดูอย่างเดียว
         if(!liff.isLoggedIn()){ liff.login({}); return; }
         loadDir();
       }catch(e){
         // ยังโหลด directory ต่อได้ (ดู/ค้นหา) แม้ liff มีปัญหา — แต่ส่งการ์ดต้องอยู่ในแอป LINE
-        document.getElementById('sub').textContent='เปิดใน LINE เพื่อส่งการ์ดได้';
+        document.getElementById('sub').textContent='โหมดดูอย่างเดียว · เปิดผ่านลิงก์ LINE เพื่อส่งการ์ด';
         loadDir();
       }
     })();
