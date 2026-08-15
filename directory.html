@@ -152,19 +152,18 @@
     var LIFF_OK=false;
     function inClient(){ return !!(window.liff && liff.isInClient && liff.isInClient()); }
     async function sendCard(m){
-      if(!LIFF_OK){ toast('เปิดหน้านี้ผ่านลิงก์ในแอป LINE เพื่อส่งการ์ด'); return; }
-      if(!inClient()){ toast('ต้องเปิดในแอป LINE (ไม่ใช่เบราว์เซอร์ปกติ) จึงจะส่งการ์ดได้'); return; }
-      if(!(liff.isApiAvailable && liff.isApiAvailable('shareTargetPicker'))){
-        toast('ยังเปิดใช้ "Share target picker" ไม่ได้ — แจ้งแอดมินเปิดในตั้งค่า LIFF (คอนโซล LINE)'); return;
-      }
+      if(!LIFF_OK){ toast('เปิดหน้านี้ผ่านลิงก์ liff.line.me ในแอป LINE เพื่อส่งการ์ด'); return; }
+      var msgs=[{ type:'flex', altText:'นามบัตร '+String(m.name||'').slice(0,60), contents:buildFlex(m) }];
+      // เรียกตรง ๆ (ไม่พึ่ง isApiAvailable ที่บางทีรายงานพลาด) แล้วโชว์ error จริงถ้าไม่ได้
       try{
-        var res=await liff.shareTargetPicker(
-          [{ type:'flex', altText:'นามบัตร '+String(m.name||'').slice(0,60), contents:buildFlex(m) }],
-          { isMultiple:true }
-        );
+        var res=await liff.shareTargetPicker(msgs, { isMultiple:true });
         if(res){ toast('ส่งนามบัตร '+(m.nick||m.name)+' แล้ว ✅'); }
         else { toast('ยกเลิกการส่ง'); }
-      }catch(e){ toast('ส่งไม่สำเร็จ: '+((e&&e.message)||e)); }
+      }catch(e){
+        var em=(e&&(e.message||e.code))||String(e);
+        if(!inClient()) toast('ต้องเปิดในแอป LINE ผ่านลิงก์ liff.line.me (ไม่ใช่เบราว์เซอร์/ลิงก์ github.io)');
+        else toast('ส่งไม่สำเร็จ: '+em+' · ตรวจว่า Publish channel แล้ว + เปิดผ่านลิงก์ liff.line.me');
+      }
     }
 
     // ---- boot ----
